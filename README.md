@@ -19,6 +19,6 @@ Bottom Row | Top Row
 
 For a 9x9 puzzle, you will either end up with a dark bottom row, or 
 
-"*.*.*.*.*"
+"* . * . * . * .*"
 
 as your pattern. If you have the latter, click the top left button, and chase it to turn out all the lights.

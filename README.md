@@ -10,12 +10,12 @@ First start at the top left in the second row. Look at the button on top of the 
 
 Bottom Row | Top Row
 ------------ | -------------
- . * . * . | . + . . +
- . . * * * | . . . + .
- . * * . * | + . . . .
- * . * * . | . . . + +
- * * . * * | . . + . .
- * * * . . | . + . . .
+". * . * ." | ". + . . +
+". . * * *" | ". . . + .
+". * * . *" | "+ . . . . 
+"* . * * ." | ". . . + +
+"* * . * *" | ". . + . .
+"* * * . ." | ". + . . .
 
 For a 9x9 puzzle, you will either end up with a dark bottom row, or 
 

@@ -5,20 +5,29 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Random;
-
-import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 
 public class LightsOutJava extends JFrame {
 
-	private static final long serialVersionUID = 4035384304216493735L; // Erstellt eine Seriennummer
+	private static final long serialVersionUID = 201909242322L; // Erstellt eine Seriennummer
 	private Container fenster; // Erstellt einen Container
 	private JButton[][] buttons; // Erstellt ein 2-dimensoniales Array des typen JButton
 	private int amountMoves = 0;
-	JLabel moves = new JLabel("Moves: " + amountMoves);
+	private int minimumMoves = 0;
+	// ArrayList<ArrayList<Integer>> steps = new ArrayList<>();
+	ArrayList<String> steps = new ArrayList<String>();
+	JLabel moves = new JLabel();
+	JLabel minimum = new JLabel();
+	JButton start = new JButton();
+	JButton revert = new JButton();
+	JProgressBar progress = new JProgressBar();
 
 	public LightsOutJava(int x, int y) {
 		buttons = new JButton[x][y]; // Erstellt eine neue Liste der Größe die im Konstruktor angegeben wird, wobei x
@@ -26,6 +35,9 @@ public class LightsOutJava extends JFrame {
 		fenster = getContentPane(); // Gibt das contentPane-Objekt für diesen Rahmen zurück
 		fenster.setLayout(new GridLayout(0, y)); // Erstellt ein neues Grid-Layout der Größe die im Konstruktor
 													// angegeben wird
+
+		progress.setMinimum(1);
+		progress.setMaximum(x * y);
 
 		int counter = 0;
 		for (int i = 0; i < buttons.length; i++) {
@@ -36,15 +48,39 @@ public class LightsOutJava extends JFrame {
 				buttons[i][j].setBackground(Color.white); // Setzt den Hintergrund auf Weiß
 				buttons[i][j].addActionListener(new ButtonPress()); // Fügt die Klasse ButtonPress als Actionlistener
 																	// dem Button hinzu
-				buttons[i][j].addActionListener(new AmountMoves());
 				fenster.add(buttons[i][j]); // Fügt den Button dem Container hinzu
-				
+				progress.setValue(steps.size());
+
 			}
 		}
 
 		fenster.add(moves);
+		fenster.add(minimum);
+		fenster.add(progress);
 
-		setSize(x * 100, y * 100); // Setzt die Größe des Containers auf 500 x 500
+		revert.setText("revert");
+		revert.setVisible(false);
+		fenster.add(revert);
+		revert.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+
+				for (int i = 0; i < buttons.length; i++) {
+					for (int j = 0; j < buttons[i].length; j++) {
+
+						if (buttons[i][j].getText().equals(steps.get(steps.size() - 1))) {
+							steps.remove(steps.size() - 1);
+							buttons[i][j].doClick();
+
+						}
+					}
+				}
+
+			}
+		});
+
+		setSize(x * 100, y * 100); // Setzt die Größe des Containers auf x*100 und y*100
 
 		Random random = new Random(); // Erstellt einen neuen Random
 		for (JButton[] buttonrow : buttons) { // Geht einmal durch das JButton-Array
@@ -52,7 +88,8 @@ public class LightsOutJava extends JFrame {
 				boolean bool = random.nextBoolean(); // Setzt einen zufälligen Boolean bei jedem neuem Button
 				if (bool == true) { // Wenn bool true ist
 					button.doClick(); // wird der Button angeklickt und ButtonPress wird ausgeführt
-					amountMoves--;
+					amountMoves = 0;
+					moves.setVisible(false);
 				}
 			}
 		}
@@ -66,7 +103,7 @@ public class LightsOutJava extends JFrame {
 		fenster.repaint(); // Updatet das Fenster
 		setVisible(true); // Setzt das Fenster auf sichtbar
 
-		JButton start = new JButton("Start");
+		start.setText("Start");
 		fenster.add(start);
 		start.addActionListener(new ActionListener() {
 
@@ -76,6 +113,8 @@ public class LightsOutJava extends JFrame {
 					for (int j = 0; j < buttons[i].length; j++) {
 						buttons[i][j].setEnabled(true);
 						start.setVisible(false);
+						moves.setVisible(true);
+						revert.setVisible(true);
 					}
 				}
 			}
@@ -83,28 +122,33 @@ public class LightsOutJava extends JFrame {
 
 	}
 
-	private class AmountMoves implements ActionListener {
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			amountMoves++;
-			moves.setText("Moves: " + amountMoves);
-		}
-
-	}
-
 	private class ButtonPress implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
+
+			if (start.isVisible()) {
+				minimumMoves++;
+			}
+
+			amountMoves++;
+			moves.setText("Moves: " + amountMoves);
+			minimum.setText("Minimum: " + minimumMoves);
 
 			int x = 0;
 			int y = 0;
 			for (int i = 0; i < buttons.length; i++) { // Geht einmal durch das gesamte Array
 				for (int j = 0; j < buttons[i].length; j++) {
 					if (((JButton) e.getSource()).equals(buttons[i][j])) { // Wenn die Source des angeklickten Buttons
-						x = i; // Setzt X (und Y in Z.58) auf den Wert die Position des Buttons damit diese im
+						x = i; // Setzt X und Y auf den Wert die Position des Buttons damit diese im
 								// switchColor benutzt werden können
 						y = j;
+
+						if (start.isVisible()) {
+							steps.add(buttons[i][j].getText());
+							System.out.println(steps.get(steps.size() - 1));
+							progress.setVisible(true);
+						}
+
 						break; // Beendet die Schleife
 					}
 				}
@@ -124,16 +168,33 @@ public class LightsOutJava extends JFrame {
 				switchColor(buttons[x][y + 1]);
 			}
 
-			if (checkWin() == true) {// Checks for a winner and executes freeze and toggles gameDone variable
+			if (checkWin() == true) {
+				
 				for (JButton[] buttonrow : buttons) {
 					for (JButton button : buttonrow) {
 						button.setBackground(Color.green);
 						button.setForeground(Color.black);
 						button.setEnabled(false);
+						
+
+						for (int i = 0; i < buttons.length; i++) { // Geht einmal durch das gesamte Array
+							for (int j = 0; j < buttons[i].length; j++) {
+								buttons[i][j].setForeground(Color.black);
+								buttons[i][j].setBorder(BorderFactory.createLineBorder(Color.black));
+							}
+						}
 					}
 				}
+				
+				if(amountMoves == minimumMoves) {
+					JOptionPane.showMessageDialog(null, "Congratulations, You won with a perfect score!");
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "Congratulations, You won!");
+				}
+				
+				
 			}
-
 		}
 
 		private boolean checkWin() {
@@ -158,4 +219,5 @@ public class LightsOutJava extends JFrame {
 		}
 
 	}
+
 }

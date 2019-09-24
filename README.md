@@ -17,6 +17,8 @@ Bottom Row | Top Row
 "* * . * *" | ". . + . .
 "* * * . ." | ". + . . .
 
+All those patterns of course also work mirrored, if thats the case just mirror the top line aswell
+
 For a 9x9 puzzle, you will either end up with a dark bottom row, or 
 
 "* . * . * . * .*"
